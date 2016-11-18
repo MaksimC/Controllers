@@ -12,7 +12,7 @@ void main (void)
     /* Set pin 3 of PORTA for output */
     DDRA |= _BV(DDA3);
     /* Init error console as stderr in UART3 and print user code info */
-    uart3_init();
+    uart3_initialize();
     stderr = &uart3_out;
     fprintf(stderr, "Version: %s built on: %s %s\n",
             GIT_DESCR, __DATE__, __TIME__);
