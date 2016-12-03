@@ -1,10 +1,3 @@
-/*
- * main.c
- *
- * Created: 02.12.2016 0:45:18
- *  Author: emaktse
- */
-
 #include <stdio.h>
 #include <avr/io.h>
 #include <util/delay.h>
@@ -13,6 +6,7 @@
 #include "uart.h"
 #include "print_helper.h"
 #include "hmi_msg.h"
+#include "../lib/hd44780_111/hd44780.h"
 
 #define BLINK_DELAY_MS 100
 
@@ -24,7 +18,6 @@ void main (void)
     uart0_initialize();
     stdin = stdout = &uart0_io;
     fprintf_P(stdout, PSTR(STUD_NAME "\n"));
-    /* END of init in/out console in UART0 and print student name with new line at the end*/
     /* Init error console as stderr in UART3 and print user code info */
     uart3_initialize();
     stderr = &uart3_out;
@@ -33,6 +26,11 @@ void main (void)
     fprintf_P(stderr, PSTR(VER_LIBC " " VER_GCC "\n"),
               PSTR(__AVR_LIBC_VERSION_STRING__));
     /* End UART3 init and info print */
+    /*Initialize display and clear srceen*/
+    lcd_init();
+    lcd_clrscr();
+    /*Print student name to LCD from program memory*/
+    lcd_puts_P(PSTR(STUD_NAME));
     /* Print ASCII HEX to console via UART3 */
     print_ascii_tbl(stdout);
     unsigned char charArray[128] = {0};
@@ -54,11 +52,16 @@ void main (void)
         fprintf_P(stdout, PSTR(PROMPT_FIRST_LETTER));
         fscanf(stdin, "%c", &letter);
         fprintf(stdout, "%c\n", letter);
+        /* Clear second line of display. Then goto beginning of line on display*/
+        lcd_clr(0X40, 16);
+        lcd_goto(0x40);
 
         /*Check the input char with first letter of records in months[] and in case of sucssess output month*/
         for (int i = 0; i < 6; i++) {
             if (!strncmp_P(&letter, (PGM_P)pgm_read_word(&months[i]), 1)) {
                 fprintf_P(stdout, PSTR("%S\n"), (PGM_P)pgm_read_word(&months[i]));
+                lcd_puts_P((PGM_P)pgm_read_word(&months[i]));
+                lcd_putc(' ');
             }
         }
 

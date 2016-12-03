@@ -1,10 +1,3 @@
-/*
- * hmi_msg.h
- *
- * Created: 02.12.2016 11:10:28
- *  Author: emaktse
- */
-
 #ifndef _HMI_MSG_H_ /* Header Guard */
 #define _HMI_MSG_H_ /* Header Guard */
 
@@ -14,7 +7,7 @@
 #define PROMPT_FIRST_LETTER "Enter month's first letter >"
 
 
-#define STUD_NAME "Maksim Tseljabov"
+#define STUD_NAME "Maksim Tšeljabov"
 
 const char string_1[] PROGMEM = "January";
 const char string_2[] PROGMEM = "February";
