@@ -31,7 +31,7 @@ void main (void)
     lcd_clrscr();
     /*Print student name to LCD from program memory*/
     lcd_puts_P(PSTR(STUD_NAME));
-    /* Print ASCII HEX to console via UART3 */
+    /* Print ASCII table */
     print_ascii_tbl(stdout);
     unsigned char charArray[128] = {0};
 
@@ -40,7 +40,6 @@ void main (void)
     }
 
     print_for_human(stdout, charArray, 128);
-    /* END of print ASCII HEX values via UART3 */
 
     while (1) {
         /* Set pin 3 high to turn LED on */
@@ -56,12 +55,13 @@ void main (void)
         lcd_clr(0X40, 16);
         lcd_goto(0x40);
 
-        /*Check the input char with first letter of records in months[] and in case of sucssess output month*/
+        /*Compare the input char with first letter of records in months[] and in case of sucssess output month*/
         for (int i = 0; i < 6; i++) {
             if (!strncmp_P(&letter, (PGM_P)pgm_read_word(&months[i]), 1)) {
                 fprintf_P(stdout, PSTR("%S\n"), (PGM_P)pgm_read_word(&months[i]));
+                /*Output month(s) to display*/
                 lcd_puts_P((PGM_P)pgm_read_word(&months[i]));
-                lcd_putc(' ');
+                lcd_putc(' '); //Put space between months, if more than 1 matches
             }
         }
 

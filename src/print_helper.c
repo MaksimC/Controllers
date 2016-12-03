@@ -1,10 +1,3 @@
-/*
- * print_helper.c
- *
- * Created: 02.12.2016 11:40:57
- *  Author: emaktse
- */
-
 #include <stdio.h>
 #include "print_helper.h"
 
