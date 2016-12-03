@@ -3,7 +3,7 @@
  *
  * Created: 02.12.2016 0:45:18
  *  Author: emaktse
- */ 
+ */
 
 #ifndef _UART_H_ /* Header Guard */
 #define _UART_H_ /* Header Guard */

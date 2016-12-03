@@ -8,10 +8,11 @@
 #include <stdio.h>
 #include <avr/io.h>
 #include <util/delay.h>
+#include <avr/pgmspace.h>
+#include <string.h>
 #include "uart.h"
 #include "print_helper.h"
 #include "hmi_msg.h"
-#include <string.h>
 
 #define BLINK_DELAY_MS 100
 
@@ -22,20 +23,21 @@ void main (void)
     /* Init in/out console in UART0 and print student name with new line at the end*/
     uart0_initialize();
     stdin = stdout = &uart0_io;
-    fprintf(stdout, STUD_NAME "\n");
+    fprintf_P(stdout, PSTR(STUD_NAME "\n"));
     /* END of init in/out console in UART0 and print student name with new line at the end*/
     /* Init error console as stderr in UART3 and print user code info */
     uart3_initialize();
     stderr = &uart3_out;
-    fprintf(stderr, "Version: %s built on: %s %s\n",
-            GIT_DESCR, __DATE__, __TIME__);
-    fprintf(stderr, "avr-libc version: %s\n", __AVR_LIBC_VERSION_STRING__);
+    fprintf_P(stderr, PSTR(VER_FW),
+              PSTR(GIT_DESCR), PSTR(__DATE__), PSTR(__TIME__));
+    fprintf_P(stderr, PSTR(VER_LIBC " " VER_GCC "\n"),
+              PSTR(__AVR_LIBC_VERSION_STRING__));
     /* End UART3 init and info print */
     /* Print ASCII HEX to console via UART3 */
     print_ascii_tbl(stdout);
     unsigned char charArray[128] = {0};
 
-    for (unsigned char i = 0; i < 128; i++) {
+    for (unsigned char i = 0; i < sizeof(charArray); i++) {
         charArray[i] = i;
     }
 
@@ -49,14 +51,14 @@ void main (void)
         /*Create char buffer.*/
         char letter = ' ';
         /*Prompt user to insert letter and output what was input*/
-        fprintf(stdout, "Enter month's first letter >");
+        fprintf_P(stdout, PSTR(PROMPT_FIRST_LETTER));
         fscanf(stdin, "%c", &letter);
         fprintf(stdout, "%c\n", letter);
 
         /*Check the input char with first letter of records in months[] and in case of sucssess output month*/
         for (int i = 0; i < 6; i++) {
-            if (!strncmp(&letter, months[i], 1)) {
-                fprintf(stdout, "%s\n", months[i]);
+            if (!strncmp_P(&letter, (PGM_P)pgm_read_word(&months[i]), 1)) {
+                fprintf_P(stdout, PSTR("%S\n"), (PGM_P)pgm_read_word(&months[i]));
             }
         }
 
