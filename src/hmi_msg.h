@@ -5,7 +5,7 @@
 #define VER_FW "Version: %S built on: %S %S\n"
 #define VER_LIBC "avr-libc version: %S"
 #define PROMPT_FIRST_LETTER "Enter month's first letter >"
-
+#define LBL_UPTIME "Uptime"
 
 #define STUD_NAME "Maksim Tšeljabov"
 

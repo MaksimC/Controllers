@@ -1,12 +1,9 @@
-#ifndef _UART_H_ /* Header Guard */
-#define _UART_H_ /* Header Guard */
+#ifndef _UART_WRAPPER_H_ /* Header Guard */
+#define _UART_WRAPPER_H_ /* Header Guard */
 
 int uart0_putchar(char c, FILE *stream);
 int uart0_getchar(FILE *stream);
 int uart3_putchar(char c, FILE *stream);
-
-void uart0_initialize(void);
-void uart3_initialize(void);
 
 /* http://www.ermicro.com/blog/?p=325 */
 
