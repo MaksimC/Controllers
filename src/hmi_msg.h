@@ -1,29 +1,32 @@
 #ifndef _HMI_MSG_H_ /* Header Guard */
 #define _HMI_MSG_H_ /* Header Guard */
-
 #define VER_GCC "avr-gcc version: " __VERSION__
 #define VER_FW "Version: %S built on: %S %S\n"
 #define VER_LIBC "avr-libc version: %S"
 #define PROMPT_FIRST_LETTER "Enter month's first letter >"
 #define LBL_UPTIME "Uptime"
-
 #define STUD_NAME "Maksim Tšeljabov"
+#define CLI_START_MSG "Use backspace to delete entry and enter to confirm.\nArrow keys and del do not work currently.\nUse Help command to learn about commands"
+#define HELP_CMD "help"
+#define HELP_HELP "Get help"
+#define VER_CMD "version"
+#define VER_HELP "Print FW version"
+#define ASCII_CMD "ascii"
+#define ASCII_HELP "print ASCII tables"
+#define MONTH_CMD "month"
+#define MONTH_HELP "Find matching month from lookup list. Usage: month <string>"
+#define CLI_HELP_MSG "Implemented commands:"
+#define CLI_NO_CMD "Command not implemented.\n Use <help> to get help."
+#define CLI_ARGS_MSG "To few or to many arguments for this command\nUse <help>"
 
-const char string_1[] PROGMEM = "January";
-const char string_2[] PROGMEM = "February";
-const char string_3[] PROGMEM = "March";
-const char string_4[] PROGMEM = "April";
-const char string_5[] PROGMEM = "May";
-const char string_6[] PROGMEM = "June";
-
-PGM_P const months[6] PROGMEM = 
-{
-    string_1,
-    string_2,
-    string_3,
-    string_4,
-    string_5,
-    string_6
-};
+extern PGM_P const months[];
+extern const char help_cmd[];
+extern const char help_help[];
+extern const char ver_cmd[];
+extern const char ver_help[];
+extern const char ascii_cmd[];
+extern const char ascii_help[];
+extern const char month_cmd[];
+extern const char month_help[];
 
 #endif /* Header Guard */

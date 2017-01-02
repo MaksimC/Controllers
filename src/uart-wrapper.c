@@ -1,6 +1,6 @@
-#include <avr/io.h>
 #include <stdio.h>
 #include "../lib/andygock_avr-uart/uart.h"
+
 
 
 int uart0_putchar(char c, FILE *stream)
@@ -8,18 +8,21 @@ int uart0_putchar(char c, FILE *stream)
     (void)stream;
 
     if (c == '\n') {
-        uart0_putchar('\r', stream);
+        uart0_putc('\r');
     }
 
-    uart0_putc(c);
+    uart0_putc((uint8_t)c);
     return 0;
 }
-
 
 int uart0_getchar(FILE *stream)
 {
     (void)stream;
-    return (uart0_getc() & 0xff);
+
+    while (uart0_peek() == UART_NO_DATA) {
+    }
+
+    return (uart0_getc() & 0x00ff);
 }
 
 
@@ -28,9 +31,9 @@ int uart3_putchar(char c, FILE *stream)
     (void)stream;
 
     if (c == '\n') {
-        uart3_putchar('\r', stream);
+        uart3_putc('\r');
     }
 
-    uart3_putc(c);
+    uart3_putc((uint8_t)c);
     return 0;
 }
