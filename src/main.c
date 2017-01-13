@@ -1,3 +1,22 @@
+/*   Copyright (C) 2017 Maksim Tseljabov <Maksim.Tseljabov@rigold.ee>
+*
+*   This file is a part of RVLP Home Project.
+*
+*   RVLP Home Project is free software: you can redistribute it and/or modify
+*   it under the terms of the GNU General Public License as published by
+*   the Free Software Foundation, either version 3 of the License, or
+*   (at your option) any later version.
+*
+*   RVLP Home Project is distributed in the hope that it will be useful,
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+*   GNU General Public License for more details.
+*
+*   You should have received a copy of the GNU General Public License
+*   along with RVLP Home Project.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+
 #include <stdio.h>
 #include <avr/io.h>
 #include <avr/pgmspace.h>
@@ -11,12 +30,17 @@
 #include "../lib/andygock_avr-uart/uart.h"
 #include "cli_microrl.h"
 #include "../lib/helius_microrl/microrl.h"
+#include "../lib/matejx_avr_lib/mfrc522.h"
+#include "rfid.h"
 
+
+#ifndef BAUD
 #define BAUD 9600
-
+#endif
 
 
 volatile uint32_t system_time;
+
 
 // Create microrl object and pointer on it
 microrl_t rl;
@@ -33,7 +57,7 @@ static inline void init_system_clock(void)
 }
 
 
-static inline void initialize_hardware()
+static inline void initialize_io()
 {
     /* Set pin 3 of PORTA for output */
     DDRA |= _BV(DDA3);
@@ -43,20 +67,43 @@ static inline void initialize_hardware()
     /* Init error console in UART3*/
     uart3_init(UART_BAUD_SELECT(BAUD, F_CPU));
     stderr = &uart3_out;
-    /* Initialize counter */
-    init_system_clock();
+}
+
+
+static inline void initialize_interrupts()
+{
     /* System Enable Interrupts */
     sei();
-    /* Initialize display and clear srceen */
+}
+
+
+static inline void initialize_counter()
+{
+    /* Initialize counter */
+    init_system_clock();
+}
+
+
+static inline void initialize_lcd()
+{
+    /* Initialize display and clear screen */
     lcd_init();
     lcd_clrscr();
+}
+
+
+static inline void initialize_rfid(void)
+{
+    //Initialize RFID reader HW
+    MFRC522_init();
+    PCD_Init();
 }
 
 
 static inline void print_console (void)
 {
     print_version(stderr);
-    // print student name
+    //print student name
     fprintf_P(stdout, PSTR(STUD_NAME));
     fputc('\n', stdout); // Add a new line to the uart printout
     fprintf_P(stdout, PSTR(CLI_START_MSG));
@@ -71,6 +118,13 @@ static inline void start_cli(void)
     microrl_init (prl, cli_print);
     // Set callback for execute
     microrl_set_execute_callback (prl, cli_execute);
+}
+
+
+static inline void initialize_lock()
+{
+    //set Data Direction register of port A as output
+    DDRA |= _BV(DDA1);
 }
 
 
@@ -94,17 +148,67 @@ static inline void heartbeat ()
 }
 
 
+/*Summary: function will read UID, fill card_t struct, setting card-> user as emmpty, the try to find scanned card in existing card list.
+If card found - display holder name & open the lock for 2 seconds, if not - display error message and close lock. Messages duration 3 secs*/
+static inline void lock_keeper()
+{
+    Uid uid;
+    card_t card;
+    uint32_t time_cur = system_time; //note current time
+    static uint32_t message_start_time;
+    static uint32_t lock_open_start;
+
+    if (PICC_IsNewCardPresent()) {
+        PICC_ReadCardSerial(&uid);
+        card.uid_size = uid.size;
+        memcpy(&card.uid, &uid.uidByte, uid.size);
+        card.user = NULL;
+        card_t *found_card = rfid_find_card(&card);
+
+        if (found_card) {
+            lcd_clr(0X40, 16); //clears screen line 2
+            lcd_goto(0x40);
+            lcd_puts(found_card->user); // display card holder name message
+            PORTA |= _BV(PORTA1); // sets port A, pin 1 as "high" - "Lock is opened"
+        } else {
+            PORTA &= ~_BV(PORTA1); // sets port A, pin 1 as "low" - "Lock is closed"
+            lcd_clr(0X40, 16);
+            lcd_goto(0x40);
+            lcd_puts_P(access_denied_msg); //display access denied message
+        }
+
+        lock_open_start = time_cur; //note time when lock was opened
+        message_start_time = time_cur; // note time when message was put to LCD
+    }
+
+    if ((message_start_time + 3) < time_cur) { //count 3 seconds
+        message_start_time = time_cur + 3;
+        lcd_clr(0X40, 16); //remove message from screen
+    }
+
+    if ((lock_open_start + 2) < time_cur) { //count 2 seconds
+        PORTA &= ~_BV(PORTA1);  // sets port A, pin 1 as "low" - "Lock is closed"
+    }
+}
+
+
+/*Summary: call functions for hardware, input/outputs initialization, prints start messages to consoles
+and keep program running in infinite loop.*/
 void main (void)
 {
-    initialize_hardware();
+    initialize_io();
+    initialize_counter();
+    initialize_lcd();
+    initialize_interrupts();
+    initialize_rfid();
+    initialize_lock();
     print_console();
     start_cli();
 
     while (1) {
         heartbeat();
-        // CLI commands are handled in cli_execute()
         microrl_insert_char(prl, cli_get_char());
-        //month_check();
+        lock_keeper();
     }
 }
 
